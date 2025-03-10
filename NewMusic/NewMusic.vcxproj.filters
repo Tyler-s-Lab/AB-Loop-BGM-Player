@@ -21,9 +21,15 @@
     <ClCompile Include="BGM.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Console.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BGM.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Console.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

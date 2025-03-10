@@ -1,4 +1,4 @@
-#include "BGM.h"
+﻿#include "BGM.h"
 #include <SFML/System/Err.hpp>
 
 #include <stdio.h>
@@ -11,82 +11,90 @@ struct OHMSAUDIOCOMMENTSTRUCTURE {
 
 	OHMSAUDIOCOMMENTSTRUCTURE() :
 		offset(0),
-		length(0)
-	{}
+		length(0) {}
 };
 
 bool getMusicOggCommentData(sf::InputStream& stream, unsigned char* buffer, size_t& bufferLength) {
-	long long pos = 0;
-	unsigned char tmp[16];
-	unsigned int tmplength = 0;
+	uint64_t pos = 0;
+	uint8_t tmp[16] = {};
+	uint64_t tmplength = 0;
+	uint64_t totalSize;
 
-	if (stream.seek(0) != 0) {
+	if (auto res = stream.getSize(); !res) {
+		return false;
+	}
+	else {
+		totalSize = *res;
+	}
+
+	if (auto res = stream.seek(0); !res || *res != 0) {
 		sf::err() << "getMusicCommentData: seek failed" << std::endl;
 		return false;
 	}
 
-	if (stream.read(tmp, 4) == -1) return false;
+	if (auto res = stream.read(tmp, 4); !res || *res != 4) return false;
 	if (tmp[0] != 'O' || tmp[1] != 'g' || tmp[2] != 'g' || tmp[3] != 'S') {
 		sf::err() << "getMusicCommentData: wrong file type" << std::endl;
 		return false;
 	}
 
-	if(stream.seek(0) != 0) return false;
+	if (auto res = stream.seek(0); !res || *res != 0) return false;
 	bool fin = false;
 	while (!fin) {
-		pos = stream.tell();
-		if (pos == -1) return false;
-		if (pos >= stream.getSize()) break;
+		if (auto res = stream.tell(); !res) return false;
+		else pos = *res;
+		if (pos >= totalSize) break;
 
-		if (stream.seek(pos + 26) == -1) return false;
+		if (auto res = stream.seek(pos + 26); !res) return false;
 
-		unsigned char n;
-		if (stream.read(&n, 1) == -1) return false;
+		uint8_t n = 0;
+		if (auto res = stream.read(&n, 1); !res) return false;
 
-		unsigned char segLength[256];
-		if (stream.read(segLength, n) == -1) return false;
+		unsigned char segLength[256] = {};
+		if (auto res = stream.read(segLength, n); !res) return false;
 
 		// read segs
 		for (int i = 0; !fin && i < n; ++i) {
-			long long segStartPos = stream.tell();
-			if (segStartPos == -1) return false;
+			uint64_t segStartPos;
+			if (auto res = stream.tell(); !res) return false;
+			else segStartPos = *res;
 
-			if (stream.read(tmp, 1) == -1) return false;
+			if (auto res = stream.read(tmp, 1); !res) return false;
 
 			// seg type is not COMMENT
 			if (tmp[0] != 3) {
-				if (stream.seek(segStartPos + segLength[i]) == -1) return false;
+				if (auto res = stream.seek(segStartPos + segLength[i]); !res) return false;
 				continue;
 			}
 
 			// seg type is COMMENT
-			if (stream.seek(segStartPos + 7) == -1) return false;
+			if (auto res = stream.seek(segStartPos + 7); !res) return false;
 
-			if (stream.read(tmp, 4) == -1) return false;
-			tmplength = static_cast<unsigned long long>(tmp[3]);
+			if (auto res = stream.read(tmp, 4); !res) return false;
+			tmplength = static_cast<uint64_t>(tmp[3]);
 			tmplength = (((((tmplength << 8) + tmp[2]) << 8) + tmp[1]) << 8) + tmp[0];
 
-			if (stream.seek(segStartPos + 11 + tmplength + 4) == -1) return false;
+			if (auto res = stream.seek(segStartPos + 11 + tmplength + 4); !res) return false;
 
 			while (!fin) {
-				pos = stream.tell();
-				if (pos == -1) return false;
+				if (auto res = stream.tell(); !res) return false;
+				else pos = *res;
 				if (pos >= segStartPos + segLength[i]) break;
 
-				if (stream.read(tmp, 4) == -1) return false;
-				tmplength = static_cast<unsigned long long>(tmp[3]);
+				if (auto res = stream.read(tmp, 4); !res) return false;
+				tmplength = static_cast<uint64_t>(tmp[3]);
 				tmplength = (((((tmplength << 8) + tmp[2]) << 8) + tmp[1]) << 8) + tmp[0];
 
 				if (tmplength < 13) {
-					if (stream.seek(pos + 4 + tmplength) == -1) return false;
+					if (auto res = stream.seek(pos + 4 + tmplength); !res) return false;
 					continue;
 				}
 
-				if (stream.read(tmp, 8) == -1) return false;
+				if (auto res = stream.read(tmp, 8); !res) return false;
 				// not 'OHMSSPC='
 				if (!(tmp[0] == 'O' && tmp[1] == 'H' && tmp[2] == 'M' && tmp[3] == 'S' &&
 					tmp[4] == 'S' && tmp[5] == 'P' && tmp[6] == 'C' && tmp[7] == '=')) {
-					if (stream.seek(pos + 4 + tmplength) == -1) return false;
+					if (auto res = stream.seek(pos + 4 + tmplength); !res) return false;
 					continue;
 				}
 				// is 'OHMSSPC='
@@ -94,44 +102,43 @@ bool getMusicOggCommentData(sf::InputStream& stream, unsigned char* buffer, size
 
 				if (tmplength >= bufferLength) return false;
 				bufferLength = tmplength;
-				if (stream.read(buffer, tmplength) == -1) return false;
+				if (auto res = stream.read(buffer, tmplength); !res) return false;
 				buffer[tmplength] = '\0';
 				fin = true;
 			}
-			if (stream.seek(segStartPos + segLength[i]) == -1) return false;
+			if (auto res = stream.seek(segStartPos + segLength[i]); !res) return false;
 		}
 	}
 	return fin;
 }
 
 
-bool readMusicLoopPointStrict(sf::InputStream& stream, OHMSAUDIOCOMMENTSTRUCTURE& data) {
+std::optional<sf::Music::TimeSpan> readMusicLoopPointStrict(sf::InputStream& stream) {
 	unsigned char tmp[64];
 	size_t length = 64;
 	if (!getMusicOggCommentData(stream, tmp, length)) {
-		return false;
+		return {};
 	}
 	if (tmp[0] != '>') {
-		return false;
+		return {};
 	}
 	long long val = 0;
 	size_t i = 1;
 	for (; i < length; ++i) {
 		if (tmp[i] == ':') break;
-		if (tmp[i] < '0' || tmp[i] > '9') return false;
+		if (tmp[i] < '0' || tmp[i] > '9') return {};
 		val = val * 10 + tmp[i] - '0';
 	}
-	data.offset = val;
-	if (i >= length - 1 || tmp[i] != ':') return false;
+	auto offset = val;
+	if (i >= length - 1 || tmp[i] != ':') return {};
 	val = 0;
 	for (++i; i < length; ++i) {
 		if (tmp[i] == '<') break;
-		if (tmp[i] < '0' || tmp[i] > '9') return false;
+		if (tmp[i] < '0' || tmp[i] > '9') return {};
 		val = val * 10 + tmp[i] - '0';
 	}
-	data.length = val;
-	if (i >= length || tmp[i] != '<') return false;
-	return true;
+	if (i >= length || tmp[i] != '<') return {};
+	return sf::Music::TimeSpan{ sf::microseconds(offset), sf::microseconds(val) };
 }
 
 
@@ -144,8 +151,7 @@ namespace audio {
 
 
 ohms::audio::BGM::BGM() :
-	m_music(std::make_unique<sf::Music>())
-{}
+	m_music(std::make_unique<sf::Music>()) {}
 
 
 ohms::audio::BGM::~BGM() {
@@ -154,7 +160,7 @@ ohms::audio::BGM::~BGM() {
 }
 
 
-bool BGM::openFromFile(const std::string& filename) {
+bool BGM::openFromFile(const std::filesystem::path& filename) {
 	m_music->stop();
 
 	std::unique_ptr<sf::FileInputStream> stream = std::make_unique<sf::FileInputStream>();
@@ -163,10 +169,13 @@ bool BGM::openFromFile(const std::string& filename) {
 		return false;
 	}
 
-	OHMSAUDIOCOMMENTSTRUCTURE data;
-	if (!readMusicLoopPointStrict(*stream, data)) {
+	sf::Music::TimeSpan timeSpan;
+	if (auto res = readMusicLoopPointStrict(*stream); !res) {
 		sf::err() << "ohms::audio::BGM: read comment failed" << std::endl;
 		return false;
+	}
+	else {
+		timeSpan = *res;
 	}
 
 	if (!m_music->openFromStream(*stream)) {
@@ -174,8 +183,8 @@ bool BGM::openFromFile(const std::string& filename) {
 		return false;
 	}
 
-	m_music->setLoopPoints(sf::Music::TimeSpan(sf::microseconds(data.offset), sf::microseconds(data.length)));
-	m_music->setLoop(true);
+	m_music->setLoopPoints(timeSpan);
+	m_music->setLooping(true);
 
 	m_stream = std::move(stream);
 	return true;
@@ -203,12 +212,12 @@ sf::Music::Status BGM::getStatus() const {
 
 
 bool BGM::getLoop() const {
-	return m_music->getLoop();
+	return m_music->isLooping();
 }
 
 
 void BGM::setLoop(bool loop) {
-	return m_music->setLoop(loop);
+	return m_music->setLooping(loop);
 }
 
 
@@ -253,7 +262,7 @@ sf::Vector3f BGM::getPosition() const {
 
 
 void BGM::setPosition(float x, float y, float z) {
-	return m_music->setPosition(x, y, z);
+	return m_music->setPosition({ x, y, z });
 }
 
 

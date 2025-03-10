@@ -5,82 +5,97 @@
 #include <SFML/Audio.hpp>
 
 #include "BGM.h"
+#include "Console.h"
 
-#include <Windows.h>
+#include <iostream>
+#include <format>
 
+using namespace std;
 
-void timeTo3Nums(sf::Time time, int& min, int& sec, int& subsec) {
-	sf::Int32 t = time.asMilliseconds();
-	t /= 10;
-	t = t / 10 + ((t % 10) >= 5);
+struct Time {
+	Time(sf::Time time) {
+		auto t = (int)time.asMicroseconds();
 
-	subsec = t % 10;
-	t /= 10;
-	sec = t % 60;
-	t /= 60;
-	min = t;
-	return;
-}
+		mic = t % 1000;
+		t /= 1000;
 
+		mil = t % 1000;
+
+		t /= 10;
+		t = t / 10 + (((t % 10) >= 5) ? 1 : 0);
+
+		sub = t % 10;
+		t /= 10;
+
+		sec = t % 60;
+		t /= 60;
+
+		min = t;
+	}
+
+	int min;
+	int sec;
+	int sub;
+	int mil;
+	int mic;
+};
 
 int main(int argc, char* argv[]) {
-	HANDLE hStdOut;
-	hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	Console con;
 
 	ohms::audio::BGM bgm;
+	filesystem::path path;
 
 	if (argc >= 2) {
-		if (!bgm.openFromFile(argv[1])) {
-			MessageBoxW(NULL, L"Open music failed!", L"NewMusic.exe: ERROR", MB_ICONERROR);
-			return 1;
-		}
-		system("cls");
-		printf_s("Playing: \'%s\'\n\n", argv[1]);
+		path = argv[1];
 	}
 	else {
-		char tfn[256] = { 0 };
-		printf_s("Input music filename:\n");
-		scanf_s("%s", tfn, 256);
-		if (!bgm.openFromFile(tfn)) {
-			MessageBoxW(NULL, L"Open music failed!", L"NewMusic.exe: ERROR", MB_ICONERROR);
-			return 1;
-		}
-		system("cls");
-		printf_s("Playing: \'%s\'\n\n", tfn);
+		cout << "Input music filename:\n";
+		cin >> path;
 	}
 
-	int t[6] = { 0 };
-	timeTo3Nums(bgm.getDuration(), t[0], t[1], t[2]);
+	if (!bgm.openFromFile(path)) {
+		con.ErrorMessage("Open music failed!");
+		return 1;
+	}
+	con.Clear();
+	cout << "Playing " << path << "\n\n";
 
-	wchar_t wbuffer[64] = { 0 };
+	Time duration = bgm.getDuration();
 
-	sf::Music::TimeSpan loopPoints = bgm.getLoopPoints();
-	long long testp[2];
-	testp[0] = loopPoints.offset.asMicroseconds();
-	testp[1] = testp[0] + loopPoints.length.asMicroseconds();
-	printf("Loop Points: %02lld:%02lld.%03lld.%03lld : %02lld:%02lld.%03lld.%03lld \n\n",
-		   testp[0] / 1000000 / 60, testp[0] / 1000000 % 60, testp[0] / 1000 % 1000, testp[0] % 1000,
-		   testp[1] / 1000000 / 60, testp[1] / 1000000 % 60, testp[1] / 1000 % 1000, testp[1] % 1000);
+	// Print loop interval.
+	{
+		sf::Music::TimeSpan loopPoints = bgm.getLoopPoints();
+		Time offset = loopPoints.offset;
+		Time finish = loopPoints.offset + loopPoints.length;
+		cout << format(
+			"Loop Points: {0:02}:{1:02}.{2:03}.{3:03} : {4:02}:{5:02}.{6:03}.{7:03}\n\n",
+			offset.min, offset.sec, offset.mil, offset.mic,
+			finish.min, finish.sec, finish.mil, finish.mic
+		);
+	}
 
 	bgm.play();
 #ifdef O_TEST_3
-	bgm.setPlayingOffset(bgm.getDuration() - sf::seconds(4.0f + 3.0f));
+	bgm.setPlayingOffset(bgm.getDuration() - sf::seconds(3.0f + 3.0f));
 #endif
 #ifdef O_TEST_10
-	bgm.setPlayingOffset(bgm.getDuration() - sf::seconds(4.0f + 10.0f));
+	bgm.setPlayingOffset(bgm.getDuration() - sf::seconds(3.0f + 10.0f));
 #endif
 
+	while (bgm.getStatus() == sf::Music::Status::Playing) {
+		Time now = bgm.getPlayingOffset();
 
-	while (bgm.getStatus() == sf::Music::Playing) {
-		timeTo3Nums(bgm.getPlayingOffset(), t[3], t[4], t[5]);
-			
-		swprintf_s(wbuffer, 64, L"\rPosition: %02d:%02d.%d / %02d:%02d.%d ", t[3], t[4], t[5], t[0], t[1], t[2]);
-		WriteConsoleW(hStdOut, wbuffer, static_cast<DWORD>(wcslen(wbuffer)), NULL, NULL);
+		con.Write(format(
+			"\rPosition: {:02}:{:02}.{} / {:02}:{:02}.{} ",
+			now.min, now.sec, now.sub,
+			duration.min, duration.sec, duration.sub
+		));
 
-		Sleep(100);
+		sf::sleep(sf::milliseconds(100));
 	}
 
-	system("pause");
+	con.Pause();
 
 	return 0;
 }

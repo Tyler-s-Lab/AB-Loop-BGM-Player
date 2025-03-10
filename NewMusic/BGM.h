@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <SFML/Audio/Music.hpp>
 #include <SFML/System/InputStream.hpp>
@@ -14,7 +14,7 @@ public:
 	BGM();
 	~BGM();
 
-	[[nodiscard]] bool openFromFile(const std::string& filename);
+	[[nodiscard]] bool openFromFile(const std::filesystem::path& filename);
 
 	void play();
 	void pause();
