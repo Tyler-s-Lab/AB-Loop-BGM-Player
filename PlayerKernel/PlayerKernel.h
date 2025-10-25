@@ -28,8 +28,8 @@ public:
 	float getOffset();
 	void setOffset(float seconds);
 
-	float getLoopPointA();
-	float getLoopPointB();
+	UInt64 getLoopPointA();
+	UInt64 getLoopPointB();
 
 };
 

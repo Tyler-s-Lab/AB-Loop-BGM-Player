@@ -56,11 +56,11 @@ void PlayerKernel::BgmWrapper::setOffset(float seconds) {
 	m_bgm->setPlayingOffset(sf::seconds(seconds));
 }
 
-float PlayerKernel::BgmWrapper::getLoopPointA() {
-	return m_bgm->getLoopPoints().offset.asSeconds();
+UInt64 PlayerKernel::BgmWrapper::getLoopPointA() {
+	return m_bgm->getLoopPoints().offset.asMicroseconds();
 }
 
-float PlayerKernel::BgmWrapper::getLoopPointB() {
+UInt64 PlayerKernel::BgmWrapper::getLoopPointB() {
 	auto l = m_bgm->getLoopPoints();
-	return (l.offset + l.length).asSeconds();
+	return (l.offset + l.length).asMicroseconds();
 }
