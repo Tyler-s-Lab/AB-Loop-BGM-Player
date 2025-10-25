@@ -130,19 +130,15 @@ namespace WpfGui {
 			m_duration = bgm.getDuration();
 			progressSlider.Maximum = m_duration;
 
-			float lA = bgm.getLoopPointA();
-			float lB = bgm.getLoopPointB();
-
-			int secA = (int)float.Round(lA * 10) / 10;
-			int mA = (int)float.Round(lA * 10) % 10;
-			int secB = (int)float.Round(lB * 10) / 10;
-			int mB = (int)float.Round(lB * 10) % 10;
+			ulong lA = bgm.getLoopPointA();
+			ulong lB = bgm.getLoopPointB();
 
 			textBlock.Text = string.Format(
-				"{0}\n\nLoop Points: {1:d2}:{2:d2}.{3:d3} / {4:d2}:{5:d2}.{6:d3}",
+				"{0}\n\nLoop Points: {1:d2}:{2:d2}.{3:d3}.{7:d3} / {4:d2}:{5:d2}.{6:d3}.{8:d3}",
 				path,
-				secA / 60, secA % 60, mA,
-				secB / 60, secB % 60, mB
+				lA / 1000000 / 60, lA / 1000000 % 60, lA / 1000 % 1000,
+				lB / 1000000 / 60, lB / 1000000 % 60, lB / 1000 % 1000,
+				lA % 1000, lB % 1000
 			);
 
 			{

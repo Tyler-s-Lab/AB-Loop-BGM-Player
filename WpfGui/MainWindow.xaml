@@ -13,8 +13,8 @@
         <TextBlock x:Name="textBlock" TextWrapping="Wrap" Text="Ready" FontFamily="Cascadia Mono" FontSize="24" Margin="30,0" MinHeight="60"/>
         <Rectangle Height="30"/>
         <Grid Margin="30,0">
-            <TextBlock x:Name="timeCurrent" HorizontalAlignment="Left" Text="00:00.0" FontSize="24" FontFamily="Consolas"/>
-            <TextBlock x:Name="timeDuration" HorizontalAlignment="Right" Text="00:00.0" FontSize="24" FontFamily="Consolas"/>
+            <TextBlock x:Name="timeCurrent" HorizontalAlignment="Left" Text="00:00.0" FontSize="24" FontFamily="Cascadia Mono"/>
+            <TextBlock x:Name="timeDuration" HorizontalAlignment="Right" Text="00:00.0" FontSize="24" FontFamily="Cascadia Mono"/>
         </Grid>
         <Slider x:Name="progressSlider" Minimum="0" Margin="30,0" Value="0" Thumb.DragStarted="ProgressSlider_DragStarted" Thumb.DragCompleted="ProgressSlider_DragCompleted" PreviewMouseDown="ProgressSlider_MouseDown"/>
         <Rectangle Height="30"/>
