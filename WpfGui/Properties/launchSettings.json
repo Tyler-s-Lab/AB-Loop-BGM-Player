@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "WpfGui": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "PATH": "$(OHMS_LIB_DIR)\\sfml\\3.0.2\\vc17-$(Platform)\\bin;$(PATH)"
+      }
+    }
+  }
+}
