@@ -1,4 +1,4 @@
-# OHMS-BGM-Player
+# AB-Loop-BGM-Player
 
 用于播放特殊构造的保存了默认循环点的音乐。
 
