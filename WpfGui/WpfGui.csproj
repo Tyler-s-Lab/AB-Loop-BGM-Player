@@ -9,7 +9,15 @@
     <AssemblyName>BgmPlayer</AssemblyName>
     <PlatformTarget>x64</PlatformTarget>
     <Platforms>AnyCPU;x64</Platforms>
+    <ApplicationIcon>player.ico</ApplicationIcon>
+    <Authors>Tyler Parret True (https://github.com/OwlHowlinMornSky)</Authors>
+    <Copyright>Copyright (C) 2025-2026 Tyler Parret True (OHMS)</Copyright>
+    <Version>1.1.1</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="player.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PlayerKernel\PlayerKernel.vcxproj" />
