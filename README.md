@@ -1,15 +1,14 @@
-# AB-Loop-BGM-Player
+# AB Loop BGM Player
+
+Plays music with AB-loop info. 
 
 用于播放特殊构造的保存了默认循环点的音乐。
 
-目前用于处理 类似Arknights结构 的音乐。
+```
+Use [this](https://github.com/OwlHowlinMornSky/Files-to-OHMS-BGM) to create music with AB-loop info.
+```
 
-Use [this](https://github.com/OwlHowlinMornSky/Files-to-OHMS-BGM) to make OHMS BGM.
+## Features
 
-
-
-
-
-using SoundStream = sf::SoundStream;
-template <typename T>
-using Span = sf::Music::Span<T>;
+- Arknights-like : ``` *_intro.wav ``` ``` *_loop.wav```
+- Others... You can *issue* it!
